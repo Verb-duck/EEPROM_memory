@@ -14,24 +14,26 @@ int64_t      8     8
 */
 
 
-class abstractConteiner {   //нужен только чтобы создать массив контейнеров
+//нужен только чтобы создать массив контейнеров
+class abstractConteiner {   
   public:
   virtual void readEEPROM() = 0;
   virtual void writeEEPROM() = 0;
+  virtual void print() = 0;
 }; 
 
-template<class Type>
-  class Container ;
+template<class Type> class Container ;
 
+// упарвление выделенной памяти.
+// маасив созданных контейнеров для быстрого доступа к значениям
 class Memory {
   private:
-    std::vector<abstractConteiner*> arrayContaier;  //массив контейнеров 
-    bool update_now = false;
+    std::vector<abstractConteiner*> arrayContaier;  //массив контейнеров значений
     byte next_addr = 4;       //0 занят для key_reset_EEPROM
   public:  
     template<class Type> friend class Container; 
-    void update(byte key_reset_EEPROM );  //для сброса памяти поменять число
-    //bool tick();  
+    void update(byte key_reset_EEPROM );  //для сброса значений в памяти поменять число
+    void print();                         //вывод всех значений в памяти через Serial.
 };
 Memory memory;
 
@@ -48,6 +50,7 @@ class Container : public abstractConteiner{
     const char* getName();
     virtual void readEEPROM();
     virtual void writeEEPROM();
+    virtual void print();
     void operator =(Type value)
     {
         this->value = value;
@@ -110,11 +113,7 @@ inline void Container<Type>::readEEPROM()
   EEPROM.get(addres, value);
   #if(DEBUGING == 1)
   Serial.print("read from memory ");
-  Serial.print(name);
-  Serial.print(": ");
-  Serial.print(value);
-  Serial.print(" addres ");
-  Serial.println(addres);
+  print();
   #endif
 }
 
@@ -127,13 +126,19 @@ inline void Container<Type>::writeEEPROM()
     EEPROM.commit();        //для esp обновляем
   #endif
   #if(DEBUGING == 1)
+  print();
   Serial.print("write in memory ");
+  #endif
+}
+
+template <class Type>
+inline void Container<Type>::print()
+{
   Serial.print(value);
   Serial.print(" in ");
   Serial.print(name);
   Serial.print(" at addres ");
   Serial.print(addres);
-  #endif
 }
 
 template <class Type>
@@ -157,7 +162,7 @@ inline void Container<Type>::write_name(const char *enter_name)
   }
 }
 
-void Memory::update(byte key_reset_EEPROM)
+void Memory::update(byte key_reset_EEPROM = 0)
 {
   #if defined(ESP8266) || defined(ESP32)
     EEPROM.begin(next_addr - 1);  //выделяем достаточно байт памяти для esp
@@ -178,17 +183,12 @@ void Memory::update(byte key_reset_EEPROM)
       c->readEEPROM(); //считываем все значения из EEPROM
     Serial.println("read EEPROM settings");
   }
-  update_now = true;    //дальше можно обновлять значение в памяти сразу после изменения 
 }
 
-// bool Memory::tick()
-// {
-//   if (update && millis() - timer >= _tout) {
-//     updateNow();
-//     update = 0;
-//     return true;
-//   } 
-//   return false;
-// }
+void Memory::print()
+{
+  for(auto c : arrayContaier)
+    c->print(); 
+}
 
 #endif
