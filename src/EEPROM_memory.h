@@ -114,6 +114,14 @@ Memory memory;
       {
         return this->value <= value;
       }
+      bool operator >(Type value)
+      {
+        return this->value > value;
+      }
+      bool operator <(Type value)
+      {
+        return this->value < value;
+      }
       void write_name(const char* enter_name);  //запись имени переменной в контейнер
   };
 
