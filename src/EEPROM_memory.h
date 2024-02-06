@@ -48,7 +48,7 @@ template<class Type> class Container ;
       void print();                         //вывод всех значений в памяти через Serial.
   };
 
-Memory memory;
+extern Memory memory;
 
 //=========== контейнер значений ===========
   template<class Type>
@@ -65,71 +65,30 @@ Memory memory;
       virtual void readEEPROM();
       virtual void writeEEPROM();
       virtual void print();
-      void operator =(Type value)
-      {
-          this->value = value;
-          writeEEPROM();
-      }
-      void operator +=(Type value)
-      {
-          this->value += value;
-          writeEEPROM();
-      }
-      void operator -=(Type value)
-      {
-          this->value -= value;
-          writeEEPROM();
-      }
-      void operator *=(Type value)
-      {
-          this->value *= value;
-          writeEEPROM();
-      }
-      void operator /=(Type value)
-          {
-              this->value /= value;
-              writeEEPROM();
-          }
-      Type operator ++()
-          {
-              this->value++;
-              writeEEPROM();
-              return this->value;
-          }
-      Type operator --()
-          {
-              this->value--;
-              writeEEPROM();
-              return this->value;
-          }
-      bool operator ==(Type value)
-      {
-        return this->value == value;
-      }
-      bool operator >=(Type value)
-      {
-        return this->value >= value;
-      }
-      bool operator <=(Type value)
-      {
-        return this->value <= value;
-      }
-      bool operator >(Type value)
-      {
-        return this->value > value;
-      }
-      bool operator <(Type value)
-      {
-        return this->value < value;
-      }
+      void operator =(Type value);
+      Type operator +=(Type value);
+      Type operator -=(Type value);
+      Type operator *=(Type value);
+      Type operator /=(Type value);
+      Type operator ++();
+      Type operator ++(int );
+      Type operator --();
+      Type operator --(int );
+      bool operator ==(Type value);
+      bool operator >=(Type value);
+      bool operator <=(Type value);
+      bool operator >(Type value);
+      bool operator <(Type value);
       void write_name(const char* enter_name);  //запись имени переменной в контейнер
   };
 
-//создание переменной с присвоением адреса в EEPROM
-template<class Type>
-Container<Type> create(Type value,const char* name = "") {
-  return Container<Type>(value, name); 
-}
+//======== создание переменной с присвоением адреса в EEPROM ======
+  template<class Type>
+  Container<Type> create(Type value,const char* name = "") {
+    return Container<Type>(value, name); 
+  }
+
+#endif
 
 template <class Type>
 inline Container<Type>::Container(Type enter_value,const char* enter_name )
@@ -208,72 +167,92 @@ inline void Container<Type>::write_name(const char *enter_name)
   }
 }
 
-void Memory::update(byte key_reset_EEPROM = 0)
+template <class Type>
+inline void Container<Type>::operator =(Type value)
 {
-  #if defined(ESP8266) || defined(ESP32)
-    EEPROM.begin(next_addr - 1);  //выделяем достаточно байт памяти для esp
-  #endif
-  if(key_reset_EEPROM != EEPROM.read(0))  //если ключ не совпал
-  {    
-    EEPROM.put(0,key_reset_EEPROM);     //перезаписываем ключ в EEPROM 
-    abstractConteiner *temp;
-    for(size_t i = 0 ; i < arrayContaier.length ; i++)   
-    {
-      arrayContaier[i] -> writeEEPROM();    //перезаписываем все значения в EEPROM
-    }
-    
-    #if defined(ESP8266) || defined(ESP32)
-      EEPROM.commit();    //для esp обновляем
-    #endif 
-    Serial.println("update EEPROM settings");   
-  }
-  else {
-    for(size_t i = 0 ; i < arrayContaier.length ; i++)   
-    {
-      arrayContaier[i] -> readEEPROM(); //считываем все значения из EEPROM
-    }
-    Serial.println("read EEPROM settings");
-  }
+  this->value = value;
+  writeEEPROM();
 }
-
-void Memory::print()
+template <class Type>
+inline Type Container<Type>:: operator +=(Type value)
 {
-  for(size_t i = 0 ; i < arrayContaier.length ; i++)   
-    {
-      arrayContaier[i] -> print(); 
-    }
+  this->value += value;
+  writeEEPROM();
+  return this->value;
 }
-
-vector::vector()
+template <class Type>
+inline Type Container<Type>:: operator -=(Type value)
 {
+  this->value -= value;
+  writeEEPROM();
+  return this->value;
 }
-
-vector::~vector()
+template <class Type>
+inline Type Container<Type>:: operator *=(Type value)
 {
-  if(!array)
-    delete[] array;
+  this->value *= value;
+  writeEEPROM();
+  return this->value;
 }
-void vector::push_back(abstractConteiner *add_conteiner)
+template <class Type>
+inline Type Container<Type>:: operator /=(Type value)
 {
-  length++;
-  if(!array)
-  {
-    array = new abstractConteiner*[1];
-    array[0] = add_conteiner;
-  }
-  else 
-  {
-    abstractConteiner **temp = new abstractConteiner*[length];
-    for(size_t i = 0 ; i < length - 1 ; i++)
-      temp[i] = array[i];
-    delete[] array;
-    array = temp;
-    array[length - 1] = add_conteiner;
-  }
+  this->value /= value;
+  writeEEPROM();
+  return this->value;
 }
-abstractConteiner *vector::operator[](size_t index)
+template <class Type>
+inline Type Container<Type>:: operator ++()
 {
-  return array[index];
+  this->value++;
+  writeEEPROM();
+  return this->value;
 }
-
-#endif
+template <class Type>
+inline Type Container<Type>:: operator ++(int )
+{
+  Type temp = value; 
+  this->value++;
+  writeEEPROM();
+  return temp;
+}
+template <class Type>
+inline Type Container<Type>:: operator --()
+{
+  this->value--;
+  writeEEPROM();
+  return this->value;
+}
+template <class Type>
+inline Type Container<Type>:: operator --(int )
+{
+  Type temp = value; 
+  this->value--;
+  writeEEPROM();
+  return temp;
+}
+template <class Type>
+inline bool Container<Type>:: operator ==(Type value)
+{
+  return this->value == value;
+}
+template <class Type>
+inline bool Container<Type>:: operator >=(Type value)
+{
+  return this->value >= value;
+}
+template <class Type>
+inline bool Container<Type>:: operator <=(Type value)
+{
+  return this->value <= value;
+}
+template <class Type>
+inline bool Container<Type>:: operator >(Type value)
+{
+  return this->value > value;
+}
+template <class Type>
+inline bool Container<Type>:: operator <(Type value)
+{
+  return this->value < value;
+}
