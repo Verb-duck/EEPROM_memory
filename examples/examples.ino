@@ -1,4 +1,3 @@
-#include <Arduino.h>
 #include "EEPROM_memory.h"
 #define key_reset_EEPROM 0    // для сброса значений в памяти поменять число
 
