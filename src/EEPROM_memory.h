@@ -2,7 +2,7 @@
 #define EEPROM_memory_h
 #include <EEPROM.h>
 #include <Arduino.h>
-#define DEBUGING 0
+#define DEBUGING 1
 /*           AVR   ESP
 bool         1     1 byte
 int/enum     2     4
@@ -102,8 +102,26 @@ Memory memory;
               writeEEPROM();
               return this->value;
           }
+      bool operator ==(Type value)
+      {
+        return this->value == value;
+      }
+      bool operator >=(Type value)
+      {
+        return this->value >= value;
+      }
+      bool operator <=(Type value)
+      {
+        return this->value <= value;
+      }
       void write_name(const char* enter_name);  //запись имени переменной в контейнер
   };
+
+//создание переменной с присвоением адреса в EEPROM
+template<class Type>
+Container<Type> create(Type value,const char* name = "") {
+  return Container<Type>(value, name); 
+}
 
 template <class Type>
 inline Container<Type>::Container(Type enter_value,const char* enter_name )
@@ -113,12 +131,6 @@ inline Container<Type>::Container(Type enter_value,const char* enter_name )
   this->addres = memory.next_addr;  //сохраняем адрес 
   memory.next_addr +=sizeof(value);    //считаем следующий адрес
   memory.arrayContaier.push_back(this); //добавляем контейнер в массив
-}
-
-//создание переменной с присвоением адреса в EEPROM
-template<class Type>
-Container<Type> create(Type value,const char* name = "") {
-  return Container<Type>(value, name); 
 }
 
 template <class Type>
