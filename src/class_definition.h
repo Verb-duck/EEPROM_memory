@@ -1,7 +1,5 @@
-#include <Arduino.h>
-#include "EEPROM_memory.h"
-
-Memory memory = Memory();
+#ifndef CLASS_DEFINITION_H
+#define CLASS_DEFINITION_H
 
 void Memory::update(byte key_reset_EEPROM = 0)
 {
@@ -69,3 +67,5 @@ abstractConteiner *vector::operator[](size_t index)
 {
   return array[index];
 }
+
+#endif
