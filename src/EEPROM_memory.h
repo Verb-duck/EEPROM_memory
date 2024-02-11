@@ -28,7 +28,8 @@ template<class Type> class Container ;
 
 //========== масив контейнеров ======================
   class vector {
-    public:
+    protected:
+      friend class Memory;
       vector();
       ~vector();
       void push_back(abstractConteiner *add_conteiner);
@@ -40,11 +41,12 @@ template<class Type> class Container ;
 //========= класс для упарвления выделенной памяти ===================.
   class Memory {
     private:
-    public:  
       byte next_addr = 4;       //0 занят для key_reset_EEPROM
       vector arrayContaier;  //маасив созданных контейнеров для быстрого доступа к значениям
+      void push_back (abstractConteiner *add_conteiner);
+    public:  
       template<class Type> friend class Container; 
-      void update(byte key_reset_EEPROM );  //для сброса значений в памяти поменять число
+      void update(byte Key_reset_EEPROM = 0);  //для сброса значений в памяти поменять число
       void print();                         //вывод всех значений в памяти через Serial.
   };
   Memory memory;
@@ -63,13 +65,14 @@ template<class Type> class Container ;
       int addres;         // адрес в памяти
       char* name;         // название для удобства отладки
       Container(Type enter_value = Type() , const char* enter_name = "");
+      virtual void readEEPROM();
+      virtual void writeEEPROM();
+      void write_name(const char* enter_name);  //запись имени переменной в контейнер
     public:
       template<class Type2>		
         friend Container<Type2> create(Type2 value,const char* name );
       Type getValue();
       const char* getName();
-      virtual void readEEPROM();
-      virtual void writeEEPROM();
       virtual void print();
       void operator =(Type value);
       Type operator +=(Type value);
@@ -81,11 +84,35 @@ template<class Type> class Container ;
       Type operator --();
       Type operator --(int );
       bool operator ==(Type value);
+      bool operator !=(Type value);
       bool operator >=(Type value);
       bool operator <=(Type value);
       bool operator >(Type value);
       bool operator <(Type value);
-      void write_name(const char* enter_name);  //запись имени переменной в контейнер
+
+      template <class Type_other>
+      void operator =(Container<Type_other> &other);
+      template <class Type_other>
+      Type operator +=(Container<Type_other> &other);
+      template <class Type_other>
+      Type operator -=(Container<Type_other> &other);
+      template <class Type_other>
+      Type operator *=(Container<Type_other> &other);
+      template <class Type_other>
+      Type operator /=(Container<Type_other> &other);
+      template <class Type_other>
+      bool operator ==(Container<Type_other> &other);
+      template <class Type_other>
+      bool operator !=(Container<Type_other> &other);
+      template <class Type_other>
+      bool operator >=(Container<Type_other> &other);
+      template <class Type_other>
+      bool operator <=(Container<Type_other> &other);
+      template <class Type_other>
+      bool operator >(Container<Type_other> &other);
+      template <class Type_other>
+      bool operator <(Container<Type_other> &other);
+
   };
 
 #endif

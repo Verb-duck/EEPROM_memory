@@ -9,7 +9,7 @@ inline Container<Type>::Container(Type enter_value,const char* enter_name )
   write_name(enter_name);           //записываем имя переменной в контейнер
   this->addres = memory.next_addr;  //сохраняем адрес 
   memory.next_addr +=sizeof(value);    //считаем следующий адрес
-  memory.arrayContaier.push_back(this); //добавляем контейнер в массив
+  memory.push_back(this); //добавляем контейнер в массив
 }
 
 template <class Type>
@@ -28,9 +28,9 @@ template <class Type>
 inline void Container<Type>::readEEPROM()
 {
   EEPROM.get(addres, value);
-  #if(DEBUGING == 1)
-  Serial.print("read from memory ");
-  print();
+  #if defined DEBUGING
+    Serial.print("read from memory ");
+    print();
   #endif
 }
 
@@ -42,9 +42,9 @@ inline void Container<Type>::writeEEPROM()
     //if(memory.update_now && )   //для сохранения по ходу выполнения, после сброса настроек
     EEPROM.commit();        //для esp обновляем
   #endif
-  #if(DEBUGING == 1)
-  print();
+  #if defined DEBUGING 
   Serial.print("write in memory ");
+  print();
   #endif
 }
 
@@ -86,9 +86,24 @@ inline void Container<Type>::operator =(Type value)
   writeEEPROM();
 }
 template <class Type>
+template <class Type_other>
+inline void Container<Type>::operator =(Container<Type_other> &other)
+{
+  this->value = Type(other.getValue());
+  writeEEPROM();
+}
+template <class Type>
 inline Type Container<Type>:: operator +=(Type value)
 {
   this->value += value;
+  writeEEPROM();
+  return this->value;
+}
+template <class Type>
+template <class Type_other>
+inline Type Container<Type>::operator +=(Container<Type_other> &other)
+{
+  this->value += Type(other.getValue());
   writeEEPROM();
   return this->value;
 }
@@ -100,6 +115,14 @@ inline Type Container<Type>:: operator -=(Type value)
   return this->value;
 }
 template <class Type>
+template <class Type_other>
+inline Type Container<Type>::operator -=(Container<Type_other> &other)
+{
+  this->value -= Type(other.getValue());
+  writeEEPROM();
+  return this->value;
+}
+template <class Type>
 inline Type Container<Type>:: operator *=(Type value)
 {
   this->value *= value;
@@ -107,9 +130,25 @@ inline Type Container<Type>:: operator *=(Type value)
   return this->value;
 }
 template <class Type>
+template <class Type_other>
+inline Type Container<Type>::operator *=(Container<Type_other> &other)
+{
+  this->value *= Type(other.getValue());
+  writeEEPROM();
+  return this->value;
+}
+template <class Type>
 inline Type Container<Type>:: operator /=(Type value)
 {
   this->value /= value;
+  writeEEPROM();
+  return this->value;
+}
+template <class Type>
+template <class Type_other>
+inline Type Container<Type>::operator /=(Container<Type_other> &other)
+{
+  this->value /= Type(other.getValue());
   writeEEPROM();
   return this->value;
 }
@@ -149,9 +188,32 @@ inline bool Container<Type>:: operator ==(Type value)
   return this->value == value;
 }
 template <class Type>
+template <class Type_other>
+inline bool Container<Type>::operator ==(Container<Type_other> &other)
+{
+  return this->value == Type(other.getValue());
+}
+template <class Type>
+inline bool Container<Type>:: operator !=(Type value)
+{
+  return this->value != value;
+}
+template <class Type>
+template <class Type_other>
+inline bool Container<Type>::operator !=(Container<Type_other> &other)
+{
+  return this->value != Type(other.getValue());
+}
+template <class Type>
 inline bool Container<Type>:: operator >=(Type value)
 {
   return this->value >= value;
+}
+template <class Type>
+template <class Type_other>
+inline bool Container<Type>::operator >=(Container<Type_other> &other)
+{
+  return this->value >= Type(other.getValue());
 }
 template <class Type>
 inline bool Container<Type>:: operator <=(Type value)
@@ -159,14 +221,32 @@ inline bool Container<Type>:: operator <=(Type value)
   return this->value <= value;
 }
 template <class Type>
+template <class Type_other>
+inline bool Container<Type>::operator <=(Container<Type_other> &other)
+{
+  return this->value <= Type(other.getValue());
+}
+template <class Type>
 inline bool Container<Type>:: operator >(Type value)
 {
   return this->value > value;
 }
 template <class Type>
+template <class Type_other>
+inline bool Container<Type>::operator >(Container<Type_other> &other)
+{
+  return this->value > Type(other.getValue());
+}
+template <class Type>
 inline bool Container<Type>:: operator <(Type value)
 {
   return this->value < value;
+}
+template <class Type>
+template <class Type_other>
+inline bool Container<Type>::operator <(Container<Type_other> &other)
+{
+  return this->value < Type(other.getValue());
 }
 
 #endif
